@@ -5,12 +5,14 @@ const { obterToken } = require('../helpers/autenticacao');
 const postTransferencias = require('../fixtures/postTransferencias.json');
 
 describe('Transferências', () => {
-    describe('POST /transferencias', () => {
-        let token
 
-        beforeEach(async () => {
-            token = await obterToken('julio.lima', '123456');
-        })
+    let token
+
+    beforeEach(async () => {
+        token = await obterToken('julio.lima', '123456');
+    })
+
+    describe('POST /transferencias', () => {
 
         it('Deve retornar sucesso com 201 quando o valor da transferência for igual ou acima de R$ 10,00', async () => {
             const bodyTransferencias = { ...postTransferencias }
@@ -36,4 +38,30 @@ describe('Transferências', () => {
             expect(resposta.status).to.equal(422);
         });
     });
-});
+
+    describe('GET /transferencias/{}', () => {
+
+        it('Deve retornar sucesso com 200 e dados iguais ao registro de transferencia contido no banco de dados quando o ID for válido', async () => {
+            const resposta = await request(process.env.BASE_URL)
+                .get('/transferencias/1')
+                .set('Authorization', 'Bearer ' + token);
+
+            expect(resposta.status).to.equal(200);
+            expect(resposta.body.id).to.equal(1);
+            expect(resposta.body.id).to.be.a('number');
+        });
+    });
+
+    describe('GET /transferencias/{}', () => {
+
+        it('Deve retornar 10 elementos na paginação quando informar limite de 10 registros', async () => {
+            const resposta = await request(process.env.BASE_URL)
+                .get('/transferencias?page=1&limit=10')
+                .set('Authorization', 'Bearer ' + token);
+
+            expect(resposta.status).to.equal(200);
+            expect(resposta.body.limit).to.equal(10);
+            expect(resposta.body.length).to.equal(10);
+        })
+    });
+})
